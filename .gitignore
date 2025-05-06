@@ -1,0 +1,15 @@
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Ignore database files
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+
+# Ignore intermediate pipeline outputs
+data_intermediate/
+
+
