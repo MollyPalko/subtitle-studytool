@@ -15,6 +15,7 @@ pip install konlpy pysrt
 - insert TOPIK levels, frequency counts, etc
 
 ## directory structure (to have by the end of the project)
+```
 korean-subtitle-nlp/
 ├── README.md
 ├── requirements.txt
@@ -58,6 +59,7 @@ korean-subtitle-nlp/
 └── scripts/                    # 🔁 CLI tools, DB setup, batch runners
     ├── run_pipeline.py
     └── build_database.py
+```
 
 
 ## database schema
@@ -100,6 +102,7 @@ korean-subtitle-nlp/
 
 
 ## current accuracy (manually graded by me)
+```
 📊 Annotation Report for True_Beuty_ep1_annotated.jsonl
 Total lines annotated: 140/953 (14.7%)
 Correct (✅):     105 (75.0%)
@@ -111,7 +114,7 @@ Total lines annotated: 169/410 (41.2%)
 Correct (✅):     128 (75.7%)
 Incorrect (❌):   38 (22.5%)
 Skipped (⏭):     3 (1.8%)
-
+```
 
 ## current files and directory structure and purpose
 /src/pipeline/
