@@ -13,3 +13,5 @@ __pycache__/
 data_intermediate/
 
 
+aux_data/topik/*.old*
+src/database/clean_topik_data_old.py
