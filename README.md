@@ -64,16 +64,19 @@ korean-subtitle-nlp/
 
 ## database schema
     Words(
-        word_id INTEGER PRIMARY KEY,
+        word_id INTEGER PRIMARY KEY AUTOINCREMENT,
         word TEXT NOT NULL,
-        pos_tag TEXT,             -- e.g., Noun, Verb, Adjective
-        topik_level INTEGER       -- 1–6 or NULL if unknown
+        pos_tag TEXT NOT NULL,
+        topik_level INTEGER NOT NULL,
+        homonym BOOLEAN DEFAULT 0,
+        guide TEXT,
+        UNIQUE(word, pos, level, guide)
     )
     Videos( 
-        video_id INTEGER PRIMARY KEY,
+        video_id INTEGER PRIMARY KEY AUTOINCREMENT,
         video_name TEXT NOT NULL,
-        series_name TEXT,         -- NULL if not 
-        category TEXT,            -- 'drama', 'variety', 'idol_live', 'youtube'
+        series_name TEXT,
+        category TEXT,
         source_id TEXT            
         source TEXT
     )
@@ -85,6 +88,15 @@ korean-subtitle-nlp/
         FOREIGN KEY (word_id) REFERENCES Words(word_id),
         FOREIGN KEY (video_id) REFERENCES Videos(video_id)
     )
+
+
+### Note:
+- user will simply be responsible for determining homonyms in context
+- our analysis and database will track unique words in the sense of unique in terms of level, pos, and actual word.
+- ex. 눈 and 눈 (both 1급, 명사) will not be differentiated in our database. it will enhance the learning experience of users to differentiate 'eye' and 'snow' in context
+- we can consider fixing this or adding better homonym detection/differntiation in later versions
+- words detected as homonyms in the words database will have the boolean homonym flag to aid users in detecting homonyms
+
 
 ## possibly helpful aux data
 - TOPIK guide's 6000-word list
