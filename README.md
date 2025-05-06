@@ -130,5 +130,12 @@ Skipped (⏭):     3 (1.8%)
 the scheme here is that the original output data from pass 1 is the *.jsonl file and my manually annotated files are the *_annotated.jsonl files
 
 
+## /aux_data/topik/
+- total of 10635 words are labeled 1급-6급 across 6 files
+- these files downloaded from [kleocean](https://kleocean.com/토픽-어휘-topik-vocab/)
+- files from kleocean for topik I and II lists were passed up for containing only 1847 and 3873 words respectively and only labeling words as 초/중 not 1-6
+- file from [국립국어원](https://www.korean.go.kr/front/etcData/etcDataView.do?mn_id=46&etc_seq=71&pageIndex=21) were passed up for scoring words by A/B/C only and for containing only 5966 words. (this resource does contain hanja in addition to pos tagging though)
+- english pos column is added when inserted to database, new word_id is created to be key, and usage column is eliminated
+
 
 
