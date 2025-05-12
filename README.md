@@ -154,3 +154,31 @@ the scheme here is that the original output data from pass 1 is the *.jsonl file
 
 
 
+## how to insert parsed words from json into the database:
+first in the sqlite shell, add the video entry:
+```
+INSERT INTO Videos (video_name, category)
+VALUES ('[BTS VLOG] RM | 미술관 VLOG', 'YouTube');
+```
+
+get the video id of newly added entry:
+```
+SELECT video_id, video_name 
+FROM Videos WHERE video_name = '[BTS VLOG] RM | 미술관 VLOG';
+```
+
+then in the cmd line, run the script to add the words and get the summary:
+```
+~/subtitle-studytool/src/database$ python process_tokens.py ../../json/BTS_VLOG_RM_미술관.jsonl --db korean_vocab.db --video-id 1
+=== SUMMARY ===
+Processed file:         BTS_VLOG_RM_미술관.jsonl
+Total tokens:           2462
+Matched tokens:         1132
+Ignored tokens:         706
+Unmatched tokens:       624
+Video ID:               1
+WordFrequency updated:  447 words
+Logs saved:             ignored_tokens_BTS_VLOG_RM_미술관.txt, unmatched_tokens_BTS_VLOG_RM_미술관.txt
+```
+
+
