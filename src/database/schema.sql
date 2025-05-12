@@ -4,8 +4,7 @@ CREATE TABLE IF NOT EXISTS Words (
     pos_tag TEXT NOT NULL,
     topik_level INTEGER NOT NULL,
     homonym BOOLEAN DEFAULT 0,
-    guide TEXT,
-    UNIQUE(word, pos_tag, topik_level, guide)
+    UNIQUE(word, pos_tag, topik_level)
 );
 
 CREATE TABLE IF NOT EXISTS Videos (
