@@ -1,6 +1,6 @@
 # 🗂️ Korean Subtitles Linguistic Database (v0.1)
 
-This project is a proof-of-concept pipeline and database for processing Korean subtitle files (`.srt`) into a structured format suitable for linguistic analysis. The system uses part-of-speech tagging via KoNLPy and stores both raw and processed token data in an SQLite database. The eventual goal is to facilitate research in Korean lexical, morphological, and syntactic structures using naturally occurring subtitle data from dramas and YouTube videos.
+This project is a proof-of-concept pipeline and database for processing Korean subtitle files (`.srt`) into a structured format suitable for linguistic analysis. The system uses part-of-speech tagging via KoNLPy and stores both raw and processed token data in an SQLite database. The long-term developmental goal for the project is to improve and optimize finding appropriate media for comprehnsible input for language learners of Korean (and later other languages too).
 
 ---
 
@@ -79,8 +79,7 @@ The code and structure are optimized for reproducibility, modularity, and ease o
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/korean-subtitles-db.git
-   cd korean-subtitles-db
+   cd subtitle-studytool
    ```
 
 2. Create a virtual environment (recommended):
@@ -95,8 +94,15 @@ The code and structure are optimized for reproducibility, modularity, and ease o
    ```
 
 
+4. Build database
+   ```bash
+      cd src/
+      python build_database.py
+   ```
+
+
 ## 🚀 Usage
-### how to insert parsed words from json into the database:
+### how to (manually) insert parsed words from json into the database:
 first in the sqlite shell, add the video entry:
 ```
 INSERT INTO Videos (video_name, category)
@@ -202,7 +208,7 @@ Clear and reinitialize the database at any time
 
 Add new .srt files without overwriting existing ones
 
-Use file suffixes (e.g., _done.json) to track completed steps
+Use file suffixes (e.g., json.done or srt.don) to track completed steps
 
 
 
@@ -211,7 +217,7 @@ An SQLite database file (.db) is included in Releases for demonstration purposes
 
 Future versions may include a GUI or standalone executable for non-technical users.
 
-
+Desktop apps like [sqlitebrowser](https://sqlitebrowser.org/) (full sql desktop app) or [sqliteviewer](https://sqliteviewer.app/) (web-based app for viewing) can be used to explore the database comfortably outside a command line interface.
 
 
 ## 📌 Future Work
