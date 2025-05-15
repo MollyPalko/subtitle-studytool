@@ -44,8 +44,10 @@ video_id = args.video_id
 
 
 # === Setup Logging Paths ===
-ignored_log_path = f"ignored_tokens_{basename}.txt"
-unmatched_log_path = f"unmatched_tokens_{basename}.txt"
+log_dir = Path("logs")
+log_dir.mkdir(parents=True, exist_ok=True)
+ignored_log_path = log_dir / f"ignored_tokens_{basename}.txt"
+unmatched_log_path = log_dir / f"unmatched_tokens_{basename}.txt"
 
 # === Connect to Database ===
 conn = sqlite3.connect(args.db)
