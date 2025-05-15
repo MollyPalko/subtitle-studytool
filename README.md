@@ -1,160 +1,102 @@
-# subtitle-studytool
+# 🗂️ Korean Subtitles Linguistic Database (v0.1)
 
-## requirements
-```
-pip install konlpy pysrt
-```
+This project is a proof-of-concept pipeline and database for processing Korean subtitle files (`.srt`) into a structured format suitable for linguistic analysis. The system uses part-of-speech tagging via KoNLPy and stores both raw and processed token data in an SQLite database. The eventual goal is to facilitate research in Korean lexical, morphological, and syntactic structures using naturally occurring subtitle data from dramas and YouTube videos.
 
-## pipeline stages/passes
-1. pass 1:
-- transform srt files to json files
-- do line by line processing
-- do tokenization, lemmatization, pos tagging using konlpy
-2. pass 2:
-- insert json files to database entries
-- insert TOPIK levels, frequency counts, etc
+---
 
-## directory structure (to have by the end of the project)
+## 📌 Table of Contents
+
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Database Schema & ER Diagram](#database-schema--er-diagram)
+- [Manual Grading & Annotation](#manual-grading--annotation)
+- [Reproducibility Notes](#reproducibility-notes)
+- [Packaging & Releases](#packaging--releases)
+- [Future Work](#future-work)
+- [License](#license)
+
+---
+
+## 🔍 Overview
+
+This project allows for ingesting Korean `.srt` subtitle files, performing morphological analysis, converting data to JSON format, and inserting tokenized information into an SQLite database. It was developed for use in linguistic research and educational settings where corpus data is valuable but tools may be limited.
+
+The pipeline supports:
+- Subtitle to JSON parsing
+- POS tagging with `Okt` from KoNLPy
+- Manual annotation support
+- Batch insertions into a structured database
+- Output reporting & summaries
+
+The code and structure are optimized for reproducibility, modularity, and ease of manual inspection.
+
+---
+
+## 📁 Project Structure
 ```
-korean-subtitle-nlp/
+.
 ├── README.md
-├── requirements.txt
-├── .gitignore
-│
-├── raw/                         # ✅ Manually & automatically collected SRTs
-│   ├── youtube/
-│   ├── dramas/
-│   ├── varietyShows/
-│   └── idolLives/
-│
-├── data_aux/                    # ✅ Auxiliary data like word lists, dictionaries, etc.
-│   ├── topik_vocab.csv
-│   ├── korean_dict.csv
-│   └── ...
-│
-├── data_intermediate/          # ✅ JSONL or CSV outputs from Pass 1
-│   ├── youtube/
-│   └── ...
-│
-├── data_db/                     # ✅ Optional: database file(s), e.g. SQLite
-│   └── corpus.sqlite
-│
+├── kr_er.png # Entity Relationship diagram of the DB schema
+├── requirements.txt # Dependencies
+├── raw/ # Original .srt subtitle files
+├── json/ # Intermediate JSON outputs (tokenized, lemmatized, pos tagged)
+├── aux_data/ # Reference files like TOPIK word lists, etc.
 ├── src/
-│   ├── pipeline/                # ✅ Core NLP pipeline logic
-│   │   ├── pass1_tokenize.py
-│   │   ├── pass2_index.py
-│   │   └── utils/
-│   │       ├── nlp_helpers.py
-│   │       ├── file_utils.py
-│   │       └── ...
-│   │
-│   └── downloaders/            # ✅ Subtitle download scripts
-│       ├── download_viki.py
-│       ├── download_yt.py
-│       └── ...
-│
-├── notebooks/                  # 📓 Optional: Jupyter notebooks for testing/analyzing
-│   └── explore_word_freq.ipynb
-│
-└── scripts/                    # 🔁 CLI tools, DB setup, batch runners
-    ├── run_pipeline.py
-    └── build_database.py
+│ ├── build_database.py # initialize and populate db in one cmd
+│ ├── sql/ directory for query commands and views
+│ ├── pipeline/ # Scripts for SRT parsing, tagging, annotation
+│ │ ├── srt_to_json.py # actually runs konlpy okt on srt 
+│ │ ├── annotate_output.py # read parsed json to manually grade it in interactive shell
+│ │ ├── resume_annotations.py # pick up where you left off with annotations
+│ │ └── report_annotations.py # output score summary of annotated jsonfile
+│ └── database/ # Database schema creation & insertion logic
+│ ├── init_db.py # create database with schema
+│ ├── schema.sql
+│ ├── insert_words.py # insert topik words into database 
+│ ├── process_tokens.py # puts tokens from processed json into db
+│ └── clean_topik_data.py # util used to clean topik word lists
+└── releases/
+└── v0.1/ # Optional: GitHub release downloadables (e.g. DB file)
 ```
 
 
-## database schema
-    Words(
-        word_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        word TEXT NOT NULL,
-        pos_tag TEXT NOT NULL,
-        topik_level INTEGER NOT NULL,
-        homonym BOOLEAN DEFAULT 0,
-        guide TEXT,
-        UNIQUE(word, pos, level, guide)
-    )
-    Videos( 
-        video_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        video_name TEXT NOT NULL,
-        series_name TEXT,
-        category TEXT,
-        source_id TEXT            
-        source TEXT
-    )
-    WordFrequency(
-        word_id INTEGER,
-        video_id INTEGER,
-        frequency INTEGER DEFAULT 1,
-        PRIMARY KEY (word_id, video_id),
-        FOREIGN KEY (word_id) REFERENCES Words(word_id),
-        FOREIGN KEY (video_id) REFERENCES Videos(video_id)
-    )
+---
+
+## 📦 Requirements
+
+- Python ≥ 3.8
+- `pysrt`
+- `konlpy`
+- `pandas`
+- `sqlite3` (standard library)
+
+---
+
+## 🔧 Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/korean-subtitles-db.git
+   cd korean-subtitles-db
+   ```
+
+2. Create a virtual environment (recommended):
+   ```bash
+      python -m venv venv
+      source venv/bin/activate
+   ```
+
+3. Install dependencies
+   ```bash
+      pip install -r requirements.txt
+   ```
 
 
-### Note:
-- user will simply be responsible for determining homonyms in context
-- our analysis and database will track unique words in the sense of unique in terms of level, pos, and actual word.
-- ex. 눈 and 눈 (both 1급, 명사) will not be differentiated in our database. it will enhance the learning experience of users to differentiate 'eye' and 'snow' in context
-- we can consider fixing this or adding better homonym detection/differntiation in later versions
-- words detected as homonyms in the words database will have the boolean homonym flag to aid users in detecting homonyms
-
-
-## possibly helpful aux data
-- TOPIK guide's 6000-word list
-- GitHub versions in csv format
-- Korean WordNet (KorLex) - great for root/semantic mappings, synonyms, etc
-- NIADic (Korean Morpheme Dictionary from NIA)
-- OpenKorDict
-
-## future steps:
-- create srt sub downloader for yt, viki, (and maybe weverse)
-- create scripts to to use srt sub downloader to automatically populate raw directory
-- improve pipeline in future iterations (confidence metrics, homonym differentiation, semantic analysis, automatic translation, etc)
-- create GUI/CLI tools for on demand searching of YT and interacting with database
-- integrate with Anki or other user data metrics
-
-
-## current accuracy (manually graded by me)
-```
-📊 Annotation Report for True_Beuty_ep1_annotated.jsonl
-Total lines annotated: 140/953 (14.7%)
-Correct (✅):     105 (75.0%)
-Incorrect (❌):   35 (25.0%)
-Skipped (⏭):     0 (0.0%)
-
-📊 Annotation Report for BTS_VLOG_RM_미술관_annotated.jsonl
-Total lines annotated: 169/410 (41.2%)
-Correct (✅):     128 (75.7%)
-Incorrect (❌):   38 (22.5%)
-Skipped (⏭):     3 (1.8%)
-```
-
-## current files and directory structure and purpose
-/src/pipeline/
-- annotate_output.py (original file to go through original output json and create another annotated json of correct/incorrect and notes)
-- report_annotations.py (summarizes metrics like above from annotated json files)
-- resume_annotations.py (better script to annotate output jsons for correctness - picks up where you left off last time)
-- srt_to_json.py (contains function that takes in paths to input srt and output json and does the pass 1)
-
-/json/
-- BTS_VLOG_RM_미술관_annotated.jsonl
-- BTS_VLOG_RM_미술관.jsonl
-- Coffee_Prince_ep1.jsonl
-- True_Beuty_ep1_annotated.jsonl
-- True_Beuty_ep1.jsonl
-
-the scheme here is that the original output data from pass 1 is the *.jsonl file and my manually annotated files are the *_annotated.jsonl files
-
-
-## /aux_data/topik/
-- total of 10635 words are labeled 1급-6급 across 6 files
-- these files downloaded from [kleocean](https://kleocean.com/토픽-어휘-topik-vocab/)
-- files from kleocean for topik I and II lists were passed up for containing only 1847 and 3873 words respectively and only labeling words as 초/중 not 1-6
-- file from [국립국어원](https://www.korean.go.kr/front/etcData/etcDataView.do?mn_id=46&etc_seq=71&pageIndex=21) were passed up for scoring words by A/B/C only and for containing only 5966 words. (this resource does contain hanja in addition to pos tagging though)
-- english pos column is added when inserted to database, new word_id is created to be key, and usage column is eliminated
-
-
-
-## how to insert parsed words from json into the database:
+## 🚀 Usage
+### how to insert parsed words from json into the database:
 first in the sqlite shell, add the video entry:
 ```
 INSERT INTO Videos (video_name, category)
@@ -180,5 +122,110 @@ Video ID:               1
 WordFrequency updated:  447 words
 Logs saved:             ignored_tokens_BTS_VLOG_RM_미술관.txt, unmatched_tokens_BTS_VLOG_RM_미술관.txt
 ```
+
+
+
+## 📊 Database Schema & ER Diagram
+The database schema is designed around word-level tokens, linked to subtitle files and individual sentence contexts.
+
+Below is the ER diagram representing the database schema:
+
+![ER Diagram](kr_er.png)
+
+Schema:
+```
+Words(
+    word_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    word TEXT NOT NULL,
+    pos_tag TEXT NOT NULL,
+    topik_level INTEGER NOT NULL,
+    homonym BOOLEAN DEFAULT 0,
+    guide TEXT,
+    UNIQUE(word, pos, level, guide)
+)
+Videos(
+    video_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    video_name TEXT NOT NULL,
+    series_name TEXT,
+    category TEXT,
+    source_id TEXT
+    source TEXT
+)
+WordFrequency(
+    word_id INTEGER,
+    video_id INTEGER,
+    frequency INTEGER DEFAULT 1,
+    PRIMARY KEY (word_id, video_id),
+    FOREIGN KEY (word_id) REFERENCES Words(word_id),
+    FOREIGN KEY (video_id) REFERENCES Videos(video_id)
+)
+```
+
+Word table is built on official topik word lists.
+- total of 10635 words are labeled 1급-6급 across 6 files
+- these files downloaded from [kleocean](https://kleocean.com/토픽-어휘-topik-vocab/)
+- files from kleocean for topik I and II lists were passed up for containing only 1847 and 3873 words respectively and only labeling words as 초/중 not 1-6
+- file from [국립국어원](https://www.korean.go.kr/front/etcData/etcDataView.do?mn_id=46&etc_seq=71&pageIndex=21) were passed up for scoring words by A/B/C only and for containing only 5966 words. (this resource does contain hanja in addition to pos tagging though)
+- english pos column is added when inserted to database, new word_id is created to be key, and usage column is eliminated
+
+
+
+## 🧠 Manual Grading & Annotation
+Some files have been manually reviewed and annotated for tagging accuracy and morphological validity. Annotations can be resumed, saved, and reported via:
+
+resume_annotations.py
+
+report_annotations.py
+
+These tools help validate tokenizer and POS tag performance.
+
+#### current accuracy:
+```
+📊 Annotation Report for True_Beuty_ep1_annotated.jsonl
+Total lines annotated: 140/953 (14.7%)
+Correct (✅):     105 (75.0%)
+Incorrect (❌):   35 (25.0%)
+Skipped (⏭):     0 (0.0%)
+
+📊 Annotation Report for BTS_VLOG_RM_미술관_annotated.jsonl
+Total lines annotated: 169/410 (41.2%)
+Correct (✅):     128 (75.7%)
+Incorrect (❌):   38 (22.5%)
+Skipped (⏭):     3 (1.8%)
+```
+
+
+## 🔁 Reproducibility Notes
+The project is designed for reproducibility. All steps from raw data ingestion to final database population can be executed via scripts. You can:
+
+Clear and reinitialize the database at any time
+
+Add new .srt files without overwriting existing ones
+
+Use file suffixes (e.g., _done.json) to track completed steps
+
+
+
+## 📦 Packaging & Releases
+An SQLite database file (.db) is included in Releases for demonstration purposes. You can download it directly without needing Python setup.
+
+Future versions may include a GUI or standalone executable for non-technical users.
+
+
+
+
+## 📌 Future Work
+Improve automation for bulk video processing
+
+Increase dataset size (more dramas, YouTube, etc.)
+
+Add CLI for better interaction
+
+Add NLP metrics / linguistic summary tools
+
+Deploy a basic web viewer for queries
+
+
+
 
 
