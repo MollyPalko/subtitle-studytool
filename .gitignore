@@ -11,7 +11,10 @@ __pycache__/
 
 # Ignore intermediate pipeline outputs
 data_intermediate/
+json/
+src/logs/
 
+*.done
 
 aux_data/topik/*.old*
 src/database/clean_topik_data_old.py
