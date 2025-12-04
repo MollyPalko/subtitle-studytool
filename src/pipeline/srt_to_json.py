@@ -40,7 +40,7 @@ def srt_to_jsonl(srt_path, jsonl_path):
 
             fout.write(json.dumps(json_obj, ensure_ascii=False) + '\n')
 
-    print(f"✅ Processed and saved to {jsonl_path}")
+#   print(f"✅ Processed and saved to {jsonl_path}")
 
 def run_ex():
   # Example usage
@@ -72,7 +72,7 @@ def main():
     if not json_path.is_absolute():
       json_path = (Path(__file__).resolve().parent.parent / json_path).resolve()
 
-    print(f"🔧 [BUILD MODE] Converting {srt_path} -> {json_path}")
+#   print(f"🔧 [BUILD MODE] Converting {srt_path} -> {json_path}")
     srt_to_jsonl(srt_path, json_path)
 
   else:

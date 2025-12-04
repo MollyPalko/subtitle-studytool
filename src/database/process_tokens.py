@@ -142,8 +142,9 @@ if args.enable_logging:
         for word, pos_tag in sorted(unmatched_tokens_log):
             f.write(f"{word} ({pos_tag})\n")
 
-
+# maybe add an optional arg to turn these back on
 # === Summary ===
+"""
 print("=== SUMMARY ===")
 print(f"Processed file:         {json_path.name}")
 print(f"  Total tokens:           {total_tokens}")
@@ -153,6 +154,7 @@ print(f"Ignored tokens:         {ignored_tokens}")
 print(f"Unmatched tokens:       {unmatched_tokens}")
 print(f"Video ID:               {video_id}")
 print(f"WordFrequency updated:  {len(word_freq_counter)} entries")
+"""
 if args.enable_logging:
     print(f"Logs saved:             {ignored_log_path}, {unmatched_log_path}")
 

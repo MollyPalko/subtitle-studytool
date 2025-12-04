@@ -8,11 +8,18 @@ the quick and dirty wrapper to subprocess call to each script
 '''
 import sqlite3
 import subprocess
+import random
 import sys
 import logging
 from pathlib import Path
 from contextlib import contextmanager
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description="For limiting file input size for benchmarking")
+parser.add_argument("--limit", type=int, help="the number of files you want to take input total")
+parser.add_argument("--shuffle", action='store_true', help="do you want to shuffle the selection of input (default=false)")
+args = parser.parse_args()
 
 #BASE_DIR = Path(__file__).resolve().parent
 #RAW_DIR = BASE_DIR / Path("../raw").resolve()
@@ -44,11 +51,11 @@ def run_script(script_path: str):
   script_dir = script_path.parent
   if not script_dir.exists():
     raise FileNotFoundError(f"Script dir not found: {script_dir}")
-  print(f"Running {script_path.name} in {script_dir}")
+# print(f"Running {script_path.name} in {script_dir}")
   #with pushd(script_dir):
   #  subprocess.run([sys.executable, script_path.name], check=True)
   
-  logging.info(f"> running {script_path.name} in {script_dir} ...")
+# logging.info(f"> running {script_path.name} in {script_dir} ...")
   
   with pushd(script_dir):
     try:
@@ -58,7 +65,7 @@ def run_script(script_path: str):
       sys.exit(e.returncode)
 
 def run_command(args: list, cwd: Path = None):
-  logging.info(f"▶️ Running: {' '.join(map(str, args))}")
+# logging.info(f"▶️ Running: {' '.join(map(str, args))}")
   try:
     subprocess.run(args, check=True, cwd=cwd)
   except subprocess.CalledProcessError as e:
@@ -66,7 +73,7 @@ def run_command(args: list, cwd: Path = None):
     sys.exit(e.returncode)
 
 def insert_video_and_get_id(conn, source, level, series, video):
-    logging.info(f" - inserting video: src={source}, lvl={level}, series={series}, video={video}")
+#   logging.info(f" - inserting video: src={source}, lvl={level}, series={series}, video={video}")
 
     cursor = conn.cursor()
     cursor.execute("""
@@ -84,11 +91,11 @@ def insert_video_and_get_id(conn, source, level, series, video):
     return cursor.fetchone()[0]
 
 
-def process_all_srts():
+def process_all_srts(srt_files):
   conn = sqlite3.connect(DB_PATH)
 
   # collect stable sorted list of all SRT paths
-  srt_files = sorted(RAW_DIR.rglob("*.srt"))
+  #srt_files = sorted(RAW_DIR.rglob("*.srt"))
   logging.info(f"found {len(srt_files)} SRT files to process.")
 
   for index, srt_path in enumerate(srt_files):
@@ -104,7 +111,7 @@ def process_all_srts():
     level = parts[1]
     series = parts[2]
     video = Path(parts[-1]).stem # remove extension
-    logging.info(f"  Fields: source={source}, level={level}, series={series}, video={video}")
+#   logging.info(f"  Fields: source={source}, level={level}, series={series}, video={video}")
     video_name = ""
     series_name = ""
 
@@ -147,7 +154,7 @@ def process_all_srts():
   conn.close()
 
 
-def main():
+def main(srt_files):
   logging.basicConfig(level=logging.INFO, format="%(message)s")
   # step 1: init database
   run_script("database/init_db.py")
@@ -156,10 +163,17 @@ def main():
   # step 3: the real work ...
   logging.info(" ~ begin craziness...")
   JSON_DIR.mkdir(parents=True, exist_ok=True)
-  process_all_srts()
+  process_all_srts(srt_files)
   logging.info(" > All done.")
 
 
 if __name__ == "__main__":
-  main()
+  srt_files = sorted(RAW_DIR.rglob("*.srt"))
+  if args.limit > 0 and args.shuffle and args.limit < len(srt_files):
+    copy = srt_files[:]
+    random.shuffle(copy)
+    srt_files = copy[:args.limit]
+  elif args.limit > 0 and args.limit < len(srt_files):
+    srt_files = srt_files[:args.limit]
+  main(srt_files)
 
