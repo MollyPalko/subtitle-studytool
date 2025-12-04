@@ -15,10 +15,17 @@ Run with: mpirun -n 4 python parallel_build.py
 import sqlite3
 import subprocess
 import sys
+import random
 import logging
 from pathlib import Path
 from contextlib import contextmanager
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description="For limiting file input size for benchmarking")
+parser.add_argument("--limit", type=int, help="the number of files you want to take input total")
+parser.add_argument("--shuffle", action='store_true', help="do you want to shuffle the selection of input (default=false)")
+args = parser.parse_args()
 
 # MPI
 try:
@@ -66,7 +73,7 @@ def run_script(script_path: str):
     if not script_dir.exists():
         raise FileNotFoundError(f"Script dir not found: {script_dir}")
 
-    log(f"> running {script_path.name} in {script_dir} ...")
+#   log(f"> running {script_path.name} in {script_dir} ...")
     with pushd(script_dir):
         try:
             subprocess.run([sys.executable, script_path.name], check=True)
@@ -77,7 +84,7 @@ def run_script(script_path: str):
 
 
 def run_command(args: list, cwd: Path = None):
-    log(f"▶️ Running: {' '.join(map(str, args))}")
+#   log(f"▶️ Running: {' '.join(map(str, args))}")
     try:
         subprocess.run(args, check=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
@@ -91,7 +98,7 @@ def insert_video_and_get_id(conn, source, level, series, video):
     Insert a video row and return its video_id.
     Uses a simple SELECT after INSERT. Assumes (source,level,series,video) uniquely identify a row.
     """
-    log(f" - inserting video: src={source}, lvl={level}, series={series}, video={video}")
+#   log(f" - inserting video: src={source}, lvl={level}, series={series}, video={video}")
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO Videos (source, level, series, video, series_name, video_name)
@@ -118,7 +125,7 @@ def process_slice(srt_files, start_idx, end_idx):
     conn = sqlite3.connect(DB_PATH, timeout=30)
     for local_i, srt_path in enumerate(srt_files[start_idx:end_idx]):
         global_index = start_idx + local_i
-        log(f"\n[{global_index}] Processing SRT: {srt_path}")
+#       log(f"\n[{global_index}] Processing SRT: {srt_path}")
 
         # compute relative parts: expected <source>/<level>/<series>/<file>.srt
         try:
@@ -135,7 +142,7 @@ def process_slice(srt_files, start_idx, end_idx):
         level = parts[1]
         series = parts[2]
         video = Path(parts[-1]).stem
-        log(f"  Fields: source={source}, level={level}, series={series}, video={video}")
+#       log(f"  Fields: source={source}, level={level}, series={series}, video={video}")
 
         # keep placeholders for series_name/video_name for now
         video_name = ""
@@ -184,12 +191,12 @@ def process_slice(srt_files, start_idx, end_idx):
             "--video-id", str(video_id)
         ])
 
-        log(f"✅ Done processing index {global_index}: {video}")
+        log(f"✅ {rank} Done processing index {global_index}: {video}")
 
     conn.close()
 
 
-def main():
+def main(srt_files):
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     # Rank 0 performs DB initialization
     if rank == 0:
@@ -203,15 +210,16 @@ def main():
 
     # Ensure all ranks wait until DB init completes
     comm.Barrier()
-    log("passed barrier after setup")
+#   log("passed barrier after setup")
 
     # Prepare JSON dir on all ranks (idempotent)
     JSON_DIR.mkdir(parents=True, exist_ok=True)
 
     # Build the stable sorted list of SRT files on every rank (same deterministic order)
-    srt_files = sorted(RAW_DIR.rglob("*.srt"))
+#   srt_files = sorted(RAW_DIR.rglob("*.srt"))
     total = len(srt_files)
-    log(f"found {total} SRT files in total")
+    if rank == 0:
+        log(f"found {total} SRT files in total")
 
     if total == 0:
         log("no srt files found; exiting")
@@ -229,14 +237,21 @@ def main():
     start = max(0, min(start, total))
     end = max(start, min(end, total))
 
-    log(f"assigned slice start={start}, end={end} (count={end-start})")
+#   log(f"assigned slice start={start}, end={end} (count={end-start})")
 
     # Process assigned slice
     process_slice(srt_files, start, end)
 
-    log("rank finished its assigned work.")
+    log(f"rank {rank} finished its assigned work.")
 
 
 if __name__ == "__main__":
-    main()
+    srt_files = sorted(RAW_DIR.rglob("*.srt"))
+    if args.limit> 0 and args.shuffle and args.limit < len(srt_files):
+      copy = srt_files[:]
+      random.shuffle(copy)
+      srt_files = copy[:args.limit]
+    elif args.limit > 0 and args.limit < len(srt_files):
+      srt_files = srt_files[:args.limit]
+    main(srt_files)
 
