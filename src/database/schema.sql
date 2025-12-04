@@ -5,7 +5,11 @@ CREATE TABLE IF NOT EXISTS Videos (
     series TEXT NOT NULL,
     video TEXT NOT NULL,
     series_name TEXT,
-    video_name TEXT
+    video_name TEXT,
+
+    total_tokens INTEGER DEFAULT 0,
+    matched_tokens INTEGER DEFAULT 0,
+    duration_minutes REAL DEFAULT 0
 );
 
 

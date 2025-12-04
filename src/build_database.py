@@ -92,7 +92,7 @@ def process_all_srts():
   logging.info(f"found {len(srt_files)} SRT files to process.")
 
   for index, srt_path in enumerate(srt_files):
-    logging.info(f"[{index}]  Processing SRT: {srt_path}")
+    logging.info(f"\n[{index}]  Processing SRT: {srt_path}")
 
     #parts = srt_path.parts
     parts = srt_path.relative_to(RAW_DIR).parts
