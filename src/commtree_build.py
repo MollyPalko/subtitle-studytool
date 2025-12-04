@@ -19,12 +19,19 @@ Run with: mpirun -n 8 python3 commtree_build.py
 import sqlite3
 import subprocess
 import sys
+import random
 import logging
 from pathlib import Path
 from contextlib import contextmanager
 import os
 import json
 from collections import Counter, defaultdict
+import argparse
+
+parser = argparse.ArgumentParser(description="For limiting file input size for benchmarking")
+parser.add_argument("--limit", type=int, help="the number of files you want to take input total")
+parser.add_argument("--shuffle", action='store_true', help="do you want to shuffle the selection of input (default=false)")
+args = parser.parse_args()
 
 # MPI
 try:
@@ -80,7 +87,7 @@ def log(msg, *args, **kwargs):
 
 
 def run_command(args: list, cwd: Path = None):
-    logging.info(f"▶️ Running: {' '.join(map(str, args))}")
+#   logging.info(f"▶️ Running: {' '.join(map(str, args))}")
     try:
         subprocess.run(args, check=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
@@ -150,7 +157,7 @@ def merge_batches(batch1, batch2):
 
 
 def do_leaf(srt_files, start_idx, end_idx, word_lookup):
-    parent = (size - 1) // 2
+    parent = (rank - 1) // 2
 
     for local_i, srt_path in enumerate(srt_files[start_idx:end_idx]):
         global_index = start_idx + local_i
@@ -255,7 +262,7 @@ def do_root():
     conn.close()
 
 
-def main():
+def main(srt_files):
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     # Rank 0: init DB and broadcast word_lookup
@@ -279,7 +286,7 @@ def main():
         do_root()
     elif rank > (size - 2) // 2:
         # Leaf SRT partitioning
-        srt_files = sorted(RAW_DIR.rglob("*.srt"))
+#       srt_files = sorted(RAW_DIR.rglob("*.srt"))
         total = len(srt_files)
         leaf_ranks = [i for i in range(size) if i > (size - 2) // 2]
         num_leaves = len(leaf_ranks)
@@ -304,5 +311,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    srt_files = sorted(RAW_DIR.rglob("*.srt"))
+    if args.limit> 0 and args.shuffle and args.limit < len(srt_files):
+      copy = srt_files[:]
+      random.shuffle(copy)
+      srt_files = copy[:args.limit]
+    elif args.limit > 0 and args.limit < len(srt_files):
+      srt_files = srt_files[:args.limit]
+    main(srt_files)
 
