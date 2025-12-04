@@ -1,3 +1,14 @@
+CREATE TABLE IF NOT EXISTS Videos (
+    video_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source TEXT NOT NULL,
+    level TEXT NOT NULL,
+    series TEXT NOT NULL,
+    video TEXT NOT NULL,
+    series_name TEXT,
+    video_name TEXT
+);
+
+
 CREATE TABLE IF NOT EXISTS Words (
     word_id INTEGER PRIMARY KEY AUTOINCREMENT,
     word TEXT NOT NULL,
@@ -7,14 +18,6 @@ CREATE TABLE IF NOT EXISTS Words (
     UNIQUE(word, pos_tag, topik_level)
 );
 
-CREATE TABLE IF NOT EXISTS Videos (
-    video_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    video_name TEXT NOT NULL,
-    series_name TEXT,
-    category TEXT,
-    source_id TEXT,
-    source TEXT
-);
 
 CREATE TABLE IF NOT EXISTS WordFrequency (
     word_id INTEGER,
