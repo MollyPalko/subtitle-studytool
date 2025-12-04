@@ -45,8 +45,8 @@ def run_script(script_path: str):
   if not script_dir.exists():
     raise FileNotFoundError(f"Script dir not found: {script_dir}")
   print(f"Running {script_path.name} in {script_dir}")
-  with pushd(script_dir):
-    subprocess.run([sys.executable, script_path.name], check=True)
+  #with pushd(script_dir):
+  #  subprocess.run([sys.executable, script_path.name], check=True)
   
   logging.info(f"> running {script_path.name} in {script_dir} ...")
   
@@ -65,45 +65,60 @@ def run_command(args: list, cwd: Path = None):
     logging.error(f"❌ Command failed with exit code {e.returncode}")
     sys.exit(e.returncode)
 
+def insert_video_and_get_id(conn, source, level, series, video):
+    logging.info(f" - inserting video: src={source}, lvl={level}, series={series}, video={video}")
 
-def insert_video_and_get_id(conn, name, category):
-  logging.info(f" - inserting video: {name}, {category}")
-  cursor = conn.cursor()
-  cursor.execute(
-        "INSERT INTO Videos (video_name, category) VALUES (?, ?)", (name, category)
-  )
-  conn.commit()
-  cursor.execute(
-        "SELECT video_id FROM Videos WHERE video_name = ? AND category = ?", (name, category)
-  )
-  return cursor.fetchone()[0]
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO Videos (source, level, series, video, series_name, video_name)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (source, level, series, video, None, None))
+
+    conn.commit()
+
+    cursor.execute("""
+        SELECT video_id FROM Videos
+        WHERE source = ? AND level = ? AND series = ? AND video = ?
+    """, (source, level, series, video))
+
+    return cursor.fetchone()[0]
 
 
 def process_all_srts():
   conn = sqlite3.connect(DB_PATH)
-  for srt_path in RAW_DIR.rglob("*.srt"):
-    # skip the file if already processed
-    if srt_path.with_suffix(".srt.done").exists():
-      logging.info(f" >> skipping already processed: {srt_path}")
-      continue
 
-    logging.info(f"  Processing SRT: {srt_path}")
+  # collect stable sorted list of all SRT paths
+  srt_files = sorted(RAW_DIR.rglob("*.srt"))
+  logging.info(f"found {len(srt_files)} SRT files to process.")
+
+  for index, srt_path in enumerate(srt_files):
+    logging.info(f"[{index}]  Processing SRT: {srt_path}")
 
     #parts = srt_path.parts
     parts = srt_path.relative_to(RAW_DIR).parts
-    category = parts[0]  # this 'drama' or 'youtube'
-    show_and_ep = parts[1:]
+    # expected: <source>/<level>/<series>/<video>.srt
+    if len(parts) < 4:
+        logging.error(f"invalid srt structure: {srt_path}")
+        continue
+    source = parts[0]
+    level = parts[1]
+    series = parts[2]
+    video = Path(parts[-1]).stem # remove extension
+    logging.info(f"  Fields: source={source}, level={level}, series={series}, video={video}")
+    video_name = ""
+    series_name = ""
 
-    if category == "drama":
-      show_name = show_and_ep[0]
-      episode_file = Path(show_and_ep[1]).stem
-      video_name = f"{show_name} {episode_file}"
-    else:
-      video_name = Path(show_and_ep[0]).stem
+    # update this section later to format readable series/vid name and pull info from online
+    if source == "drama":
+      video_name = "" #f"{show_name} {episode_file}"
+      series_name = ""
+    elif source == "youtube":
+      video_name = ""
+      series_name = ""
 
 
     # Step 1: Convert srt to jsonl
-    json_path = JSON_DIR / f"{video_name}.jsonl"
+    json_path = JSON_DIR / f"{video}.jsonl"
     run_command([
         sys.executable,
         "pipeline/srt_to_json.py",
@@ -116,7 +131,8 @@ def process_all_srts():
       continue
     
     # Step 2: Insert video and get ID
-    video_id = insert_video_and_get_id(conn, video_name, category)
+    video_id = insert_video_and_get_id(conn, source, level, series, video)
+    # add video_name and series_name to this function later
 
     # Step 3: Insert transcript
     run_command([
@@ -126,13 +142,7 @@ def process_all_srts():
         "--video-id", str(video_id)
     ])
 
-    # Step 4: Mark files as done
-    srt_done = srt_path.with_suffix(".srt.done")
-    srt_path.rename(srt_done)
-    json_done = json_path.with_suffix(".jsonl.done")
-    json_path.rename(json_done)
-
-    logging.info(f"✅ Done processing: {video_name}")
+    logging.info(f"✅ Done processing index {index}: {video}")
 
   conn.close()
 
@@ -152,3 +162,4 @@ def main():
 
 if __name__ == "__main__":
   main()
+
