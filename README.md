@@ -1,6 +1,6 @@
 # 🗂️ Korean Subtitles Linguistic Database (v0.1)
 
-This project is a proof-of-concept pipeline and database for processing Korean subtitle files (`.srt`) into a structured format suitable for linguistic analysis. The system uses part-of-speech tagging via KoNLPy and stores both raw and processed token data in an SQLite database. The eventual goal is to facilitate research in Korean lexical, morphological, and syntactic structures using naturally occurring subtitle data from dramas and YouTube videos.
+This project is a pipeline and database for processing Korean subtitle files (`.srt`) into a structured format suitable for linguistic analysis. The system uses part-of-speech tagging via KoNLPy and stores both raw and processed token data in an SQLite database. The eventual goal is to facilitate research in Korean lexical, morphological, and syntactic structures using naturally occurring subtitle data from dramas and YouTube videos.
 
 ---
 
@@ -45,19 +45,18 @@ The code and structure are optimized for reproducibility, modularity, and ease o
 ├── json/ # Intermediate JSON outputs (tokenized, lemmatized, pos tagged)
 ├── aux_data/ # Reference files like TOPIK word lists, etc.
 ├── src/
-│ ├── build_database.py # initialize and populate db in one cmd
+│ ├── build_database.py # build db from scratch (100% serial)
+│ ├── build_database.py # build db from scratch (embarassingly parallel ver)
+│ ├── build_database.py # build db from scratch (communication b tree ver)
 │ ├── sql/ directory for query commands and views
 │ ├── pipeline/ # Scripts for SRT parsing, tagging, annotation
-│ │ ├── srt_to_json.py # actually runs konlpy okt on srt 
-│ │ ├── annotate_output.py # read parsed json to manually grade it in interactive shell
-│ │ ├── resume_annotations.py # pick up where you left off with annotations
-│ │ └── report_annotations.py # output score summary of annotated jsonfile
+│ │ └── srt_to_json.py # actually runs konlpy okt on srt
 │ └── database/ # Database schema creation & insertion logic
-│ ├── init_db.py # create database with schema
-│ ├── schema.sql
-│ ├── insert_words.py # insert topik words into database 
-│ ├── process_tokens.py # puts tokens from processed json into db
-│ └── clean_topik_data.py # util used to clean topik word lists
+│   ├── init_db.py # create database with schema
+│   ├── schema.sql
+│   ├── insert_words.py # insert topik words into database 
+│   ├── process_tokens.py # puts tokens from processed json into db
+│   └── clean_topik_data.py # util used to clean topik word lists
 └── releases/
 └── v0.1/ # Optional: GitHub release downloadables (e.g. DB file)
 ```
@@ -72,7 +71,7 @@ The code and structure are optimized for reproducibility, modularity, and ease o
 - `konlpy`
 - `pandas`
 - `sqlite3` (standard library)
-
+- `mpi4py`
 ---
 
 ## 🔧 Installation
@@ -83,20 +82,26 @@ The code and structure are optimized for reproducibility, modularity, and ease o
    cd korean-subtitles-db
    ```
 
-2. Create a virtual environment (recommended):
-   ```bash
-      python -m venv venv
-      source venv/bin/activate
-   ```
-
-3. Install dependencies
+2. Install dependencies
    ```bash
       pip install -r requirements.txt
    ```
 
+3. Build database
+   ```bash
+   cd src
+   mpirun -n # python3 parallel_build.py
+   ```
+   you can also use `commtree_build.py` in parallel too
 
+4. Use database
+   ```bash
+   sqlite3 database/korean_vocab.db
+   ```
 ## 🚀 Usage
 ### how to insert parsed words from json into the database:
+**can't garuntee this works anymore**
+
 first in the sqlite shell, add the video entry:
 ```
 INSERT INTO Videos (video_name, category)
@@ -132,7 +137,7 @@ Below is the ER diagram representing the database schema:
 
 ![ER Diagram](kr_er.png)
 
-Schema:
+(slightly out of date) Schema:
 ```
 Words(
     word_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -171,6 +176,7 @@ Word table is built on official topik word lists.
 
 
 ## 🧠 Manual Grading & Annotation
+**Also out of date**
 Some files have been manually reviewed and annotated for tagging accuracy and morphological validity. Annotations can be resumed, saved, and reported via:
 
 resume_annotations.py
