@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 # Configuration
 # ============================
 
-SERIAL_PATH = "../src/serial_results.csv"
-PARALLEL_PATH = "../parallel_results.csv"
-COMMTREE_PATH = "../src/commtree_results.csv"
+SERIAL_PATH = "./src/serial_results.csv"
+PARALLEL_PATH = "./src/parallel_results.csv"
+COMMTREE_PATH = "./src/commtree_results.csv"
 
 OUTPUT_DIR = "figures"
 SCALING_LIMIT = 128          # limit used for scaling + speedup plots
@@ -47,6 +47,8 @@ def get_serial_time(limit):
 
 def best_parallel_for_limit(limit):
     subset = parallel[parallel["limit"] == limit]
+    if subset.empty:
+        return None
     return subset.loc[subset["runtime_seconds"].idxmin()]
 
 # ============================
@@ -191,7 +193,9 @@ save("efficiency_vs_workers.png")
 
 best_rows = []
 for limit in serial["limit"]:
-    best_rows.append(best_parallel_for_limit(limit))
+    best = best_parallel_for_limit(limit)
+    if best is not None:
+        best_rows.append(best)
 
 best_parallel_df = pd.DataFrame(best_rows)
 
