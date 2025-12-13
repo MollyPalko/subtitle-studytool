@@ -1,0 +1,9 @@
+implementation,n,limit,runtime_seconds
+serial,1,1,12
+serial,1,4,72
+serial,1,8,99
+serial,1,16,129
+serial,1,32,351
+serial,1,64,657
+serial,1,128,1319
+serial,1,256,3415
