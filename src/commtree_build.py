@@ -29,7 +29,8 @@ from collections import Counter, defaultdict
 import argparse
 
 parser = argparse.ArgumentParser(description="For limiting file input size for benchmarking")
-parser.add_argument("--limit", type=int, help="the number of files you want to take input total")
+#parser.add_argument("--limit", type=int, help="the number of files you want to take input total")
+parser.add_argument("--limit", type=int,default=0, help="the number of files you want to take input total")
 parser.add_argument("--shuffle", action='store_true', help="do you want to shuffle the selection of input (default=false)")
 args = parser.parse_args()
 
