@@ -1,0 +1,166 @@
+Known samples: (653, 12)
+Unknown samples: (138, 12)
+Iter 50: train loss=0.6407, test loss=0.7254
+Iter 100: train loss=0.5556, test loss=0.6594
+Iter 150: train loss=0.5191, test loss=0.6332
+Iter 200: train loss=0.4977, test loss=0.6183
+Iter 250: train loss=0.4832, test loss=0.6082
+Iter 300: train loss=0.4724, test loss=0.6006
+
+Train accuracy: 0.8404907975460123
+Test accuracy: 0.8048780487804879
+
+Predictions for unknown videos:
+Video 8: predicted level C
+Video 22: predicted level D
+Video 28: predicted level C
+Video 63: predicted level C
+Video 66: predicted level D
+Video 78: predicted level D
+Video 80: predicted level C
+Video 85: predicted level C
+Video 90: predicted level C
+Video 101: predicted level C
+Video 111: predicted level C
+Video 115: predicted level C
+Video 131: predicted level D
+Video 134: predicted level C
+Video 135: predicted level C
+Video 137: predicted level C
+Video 139: predicted level C
+Video 141: predicted level C
+Video 146: predicted level D
+Video 147: predicted level D
+Video 148: predicted level C
+Video 152: predicted level D
+Video 158: predicted level D
+Video 159: predicted level D
+Video 169: predicted level C
+Video 171: predicted level C
+Video 182: predicted level D
+Video 183: predicted level C
+Video 185: predicted level C
+Video 187: predicted level D
+Video 191: predicted level C
+Video 197: predicted level C
+Video 214: predicted level C
+Video 221: predicted level D
+Video 228: predicted level C
+Video 231: predicted level C
+Video 239: predicted level C
+Video 249: predicted level D
+Video 253: predicted level C
+Video 263: predicted level A
+Video 271: predicted level C
+Video 277: predicted level D
+Video 278: predicted level D
+Video 279: predicted level D
+Video 280: predicted level D
+Video 281: predicted level D
+Video 282: predicted level D
+Video 283: predicted level D
+Video 284: predicted level D
+Video 285: predicted level D
+Video 286: predicted level D
+Video 287: predicted level D
+Video 288: predicted level D
+Video 289: predicted level D
+Video 290: predicted level D
+Video 291: predicted level D
+Video 292: predicted level D
+Video 317: predicted level D
+Video 318: predicted level C
+Video 319: predicted level D
+Video 326: predicted level D
+Video 327: predicted level D
+Video 328: predicted level D
+Video 329: predicted level D
+Video 342: predicted level C
+Video 343: predicted level D
+Video 346: predicted level D
+Video 363: predicted level C
+Video 364: predicted level C
+Video 365: predicted level D
+Video 366: predicted level D
+Video 379: predicted level D
+Video 382: predicted level D
+Video 383: predicted level D
+Video 404: predicted level D
+Video 405: predicted level D
+Video 406: predicted level D
+Video 407: predicted level D
+Video 422: predicted level D
+Video 423: predicted level D
+Video 424: predicted level D
+Video 441: predicted level C
+Video 442: predicted level D
+Video 443: predicted level D
+Video 462: predicted level C
+Video 463: predicted level D
+Video 464: predicted level D
+Video 479: predicted level D
+Video 480: predicted level D
+Video 481: predicted level D
+Video 482: predicted level D
+Video 495: predicted level D
+Video 496: predicted level D
+Video 499: predicted level D
+Video 524: predicted level C
+Video 525: predicted level D
+Video 526: predicted level D
+Video 527: predicted level D
+Video 540: predicted level D
+Video 543: predicted level D
+Video 544: predicted level D
+Video 553: predicted level D
+Video 554: predicted level D
+Video 555: predicted level D
+Video 556: predicted level D
+Video 571: predicted level D
+Video 572: predicted level D
+Video 573: predicted level D
+Video 594: predicted level C
+Video 595: predicted level D
+Video 596: predicted level D
+Video 615: predicted level C
+Video 617: predicted level D
+Video 618: predicted level D
+Video 631: predicted level C
+Video 635: predicted level D
+Video 652: predicted level C
+Video 654: predicted level D
+Video 669: predicted level C
+Video 671: predicted level C
+Video 685: predicted level D
+Video 686: predicted level D
+Video 687: predicted level C
+Video 703: predicted level D
+Video 704: predicted level C
+Video 718: predicted level D
+Video 721: predicted level D
+Video 739: predicted level D
+Video 741: predicted level D
+Video 742: predicted level D
+Video 744: predicted level C
+Video 747: predicted level D
+Video 765: predicted level D
+Video 767: predicted level D
+Video 768: predicted level D
+Video 772: predicted level C
+Video 773: predicted level D
+Video 775: predicted level D
+
+Unknown video prediction confidence:
+Mean confidence: 0.6662145881427995
+Min confidence: 0.41396662222292085
+Max confidence: 0.9649787423400912
+
+Low-confidence predictions:
+Video 78: predicted D (confidence=0.43)
+Video 131: predicted D (confidence=0.43)
+Video 135: predicted C (confidence=0.45)
+Video 147: predicted D (confidence=0.44)
+Video 221: predicted D (confidence=0.43)
+Video 263: predicted A (confidence=0.42)
+Video 555: predicted D (confidence=0.41)
+Model saved to ./softmax_model.pkl

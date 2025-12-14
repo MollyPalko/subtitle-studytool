@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 # =========================
 # CONFIG
 # =========================
-DB_PATH = "../database/all_korean.db"
+DB_PATH = "../../database/all_korean.db"
 TEST_SIZE = 0.25
 RANDOM_SEED = 0
 LEARNING_RATE = 0.1
@@ -59,16 +59,11 @@ SELECT
     v.total_tokens,
     v.matched_tokens,
     v.duration_minutes,
-    SUM(CASE WHEN w.topik_level = 1 THEN wf.frequency ELSE 0 END),
-    SUM(CASE WHEN w.topik_level = 2 THEN wf.frequency ELSE 0 END),
-    SUM(CASE WHEN w.topik_level = 3 THEN wf.frequency ELSE 0 END),
-    SUM(CASE WHEN w.topik_level = 4 THEN wf.frequency ELSE 0 END),
-    SUM(CASE WHEN w.topik_level = 5 THEN wf.frequency ELSE 0 END),
-    SUM(CASE WHEN w.topik_level = 6 THEN wf.frequency ELSE 0 END)
+    GROUP_CONCAT(w.topik_level || ':' || wf.frequency)
 FROM Videos v
 LEFT JOIN WordFrequency wf ON v.video_id = wf.video_id
 LEFT JOIN Words w ON wf.word_id = w.word_id
-GROUP BY v.video_id, v.level;
+GROUP BY v.video_id, v.level, v.total_tokens, v.matched_tokens, v.duration_minutes;
 """
 
 cursor.execute(query)
@@ -82,19 +77,41 @@ X_known, y_known = [], []
 X_unknown, unknown_ids = [], []
 
 for row in rows:
-    (
-        vid, level, total_tokens, matched_tokens, duration,
-        l1, l2, l3, l4, l5, l6
-    ) = row
+    vid, level, total_tokens, matched_tokens, duration, freq_str = row
 
     matched_ratio = matched_tokens / total_tokens if total_tokens > 0 else 0.0
     tokens_per_min = total_tokens / duration if duration > 0 else 0.0
+
+    # Parse frequencies
+    topik_freqs = {i: [] for i in range(1, 7)}
+    all_freqs = []
+    if freq_str:
+        for item in freq_str.split(','):
+            topik, freq = item.split(':')
+            topik = int(topik)
+            freq = int(freq)
+            topik_freqs[topik].append(freq)
+            all_freqs.append(freq)
+
+    # Aggregate level-specific sums
+    level_sums = [sum(topik_freqs[i]) for i in range(1, 7)]
+
+    # Frequency stats
+    avg_word_freq = np.mean(all_freqs) if all_freqs else 0.0
+    max_word_freq = np.max(all_freqs) if all_freqs else 0.0
+    var_word_freq = np.var(all_freqs) if all_freqs else 0.0
+
+    # Level-specific frequency ratios
+    level_ratios = [s / total_tokens if total_tokens > 0 else 0.0 for s in level_sums]
 
     features = np.array([
         total_tokens,
         matched_ratio,
         tokens_per_min,
-        l1, l2, l3, l4, l5, l6
+        avg_word_freq,
+        max_word_freq,
+        var_word_freq,
+        *level_ratios
     ], dtype=np.float32)
 
     if level in LEVEL_MAP:
@@ -206,4 +223,11 @@ print("\nLow-confidence predictions:")
 for vid, pred, conf in zip(unknown_ids, pred_classes, confidences):
     if conf < threshold:
         print(f"Video {vid}: predicted {INV_LEVEL_MAP[pred]} (confidence={conf:.2f})")
+
+
+import pickle
+MODEL_PATH = "./softmax_model.pkl"
+with open(MODEL_PATH, "wb") as f:
+    pickle.dump((W, b), f)
+print(f"Model saved to {MODEL_PATH}")
 
