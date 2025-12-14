@@ -175,6 +175,20 @@ for it in range(1, NUM_ITERATIONS + 1):
               f"test loss={test_losses[-1]:.4f}")
 
 # =========================
+# TRAINING DIAGNOSTICS
+# =========================
+plt.figure(figsize=(8, 5))
+plt.plot(train_losses, label="Train Loss")
+plt.plot(test_losses, label="Test Loss")
+plt.xlabel("Iteration")
+plt.ylabel("Cross-Entropy Loss")
+plt.title("Training and Test Loss Over Iterations")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("loss_curve.png")
+
+# =========================
 # EVALUATION
 # =========================
 P_train_final = softmax(X_train @ W + b)
